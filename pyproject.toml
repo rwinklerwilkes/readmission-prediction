@@ -1,0 +1,19 @@
+[project]
+name = "readmission"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi[standard]>=0.136.1",
+    "joblib>=1.5.3",
+    "jupyterlab>=4.5.7",
+    "matplotlib>=3.10.9",
+    "pandas>=3.0.3",
+    "resample>=1.10.3",
+    "scikit-learn>=1.8.0",
+    "shap>=0.51.0",
+    "streamlit>=1.57.0",
+    "uncertainty-calibration>=0.1.4",
+    "xgboost>=3.2.0",
+]
