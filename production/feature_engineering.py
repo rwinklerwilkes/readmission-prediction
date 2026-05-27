@@ -91,3 +91,77 @@ def filter_for_still_alive(df):
     expired = df[df['discharge_disposition_id'].isin([11,19,20,21])]
     alive = df[~df['discharge_disposition_id'].isin([11,19,20,21])]
     return alive, expired
+
+def convert_medicine_columns(x):
+    if x=='No':
+        return 0
+    elif x in ['Down','Up','Steady']:
+        return 1
+    else:
+        raise ValueError(x)
+
+def compress_medicine_columns(df):
+    df_medicine = df.copy()
+    medicine_columns = ['metformin', 'repaglinide', 'nateglinide', 'chlorpropamide',
+       'glimepiride', 'acetohexamide', 'glipizide', 'glyburide', 'tolbutamide',
+       'pioglitazone', 'rosiglitazone', 'acarbose', 'miglitol', 'troglitazone',
+       'tolazamide', 'examide', 'citoglipton', 'insulin',
+       'glyburide-metformin', 'glipizide-metformin',
+       'glimepiride-pioglitazone', 'metformin-rosiglitazone',
+       'metformin-pioglitazone']
+    
+    for m in medicine_columns:
+        df_medicine[f'on_{m}'] = df_medicine[m].apply(convert_medicine_columns)
+    on_medicine = ['on_' + m for m in medicine_columns]
+    df_medicine['number_of_diabetes_medications'] = df_medicine[on_medicine].sum(axis=1)
+    return df_medicine
+
+def icd9_featurization(icd9):
+    """Attempting to do some feature engineering on the ICD9 data to see if I can combine similar diagnoses together"""
+    icd9['first_three'] = icd9['diagnosis'].str[0:3]
+    icd9['long_tokenized'] = icd9['long'].str.replace('[^a-zA-Z0-9\s]','',regex=True).str.split(' ')
+    
+    representative_term_first = icd9.sort_values(['first_three','diagnosis']).groupby('first_three').first()['long'].reset_index()
+    representative_term_first.columns = ['first_three','representative_term_first']
+    icd9=pd.merge(icd9,representative_term_first,on='first_three')
+    
+    for i in icd9['first_three'].drop_duplicates():
+        to_agg = icd9.loc[icd9['first_three']==i,['long_tokenized']]
+        term_counts = to_agg.explode('long_tokenized').dropna().value_counts()
+        if len(term_counts.index) > 1:
+            max_term = term_counts.index[0][0] + ' ' + term_counts.index[1][0]
+        else:
+            max_term = term_counts.index[0][0]
+        icd9.loc[icd9['first_three']==i,'representative_term']=max_term
+        
+    icd9_features = icd9[['first_three','representative_term_first']].drop_duplicates()
+    return icd9_features
+
+def add_icd9_features(df, icd9_features):
+    #Right now the icd9 data isn't clean compared to what's in my current dataset - different formats, some periods, unclear how to tie these together
+    #Best I can do is use the first three characters and hope that the diagnoses are correct
+    df_icd9 = df.copy()
+    df_icd9['first_three'] = df_icd9['diag_1'].str[0:3]
+    df_icd9 = pd.merge(df_icd9, icd9_features, on=['first_three'],how='left')
+    return df_icd9
+
+def add_random_feature(df):
+    df = df.copy()
+    df['random'] = np.random.rand(df.shape[0],1)
+    return df
+
+def get_features_to_use():
+    X_features_to_use = ['race', 'gender', 'age','admission_type_id',
+                       'discharge_disposition_id', 'admission_source_id','time_in_hospital',
+                       'num_lab_procedures', 'num_procedures', 'num_medications',
+                       'number_outpatient', 'number_emergency', 'number_inpatient', 'diag_1',
+                       'diag_2', 'diag_3', 'number_diagnoses','number_of_diabetes_medications',
+                       'prior_readmissions'
+                      ]
+    y_feature_to_use = ['readmitted_dummy']
+    return X_features_to_use, y_feature_to_use
+
+def select_final_features(df):
+    Xf, yf = get_features_to_use()
+    feature_df = df[Xf+yf]
+    return feature_df
