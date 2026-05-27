@@ -48,7 +48,7 @@ print(brier)
 
 from sklearn.calibration import CalibratedClassifierCV
 
-calibrated_model = CalibratedClassifierCV(clf, method='sigmoid', cv=5)
+calibrated_model = CalibratedClassifierCV(clf, method='isotonic', cv=5)
 calibrated_model.fit(X_train_to_use, y_train)
 
 prob_pos = calibrated_model.predict_proba(X_test_to_use)[:, 1]
