@@ -1,8 +1,8 @@
+#This library comes from https://github.com/p-lambda/verified_calibration
+#The library is based on a paper from the same author https://arxiv.org/pdf/1909.10155
 import calibration as cal
-
-#TODO: Convert to functional
-
-calibration_error = cal.get_calibration_error(clf.predict_proba(X_test_to_use), y_test)
+from sklearn.calibration import calibration_curve, CalibrationDisplay, CalibratedClassifierCV
+from sklearn import metrics as m
 
 def expected_calibration_error(samples, true_labels, M=5):
     # uniform binning approach with M number of bins
@@ -34,19 +34,20 @@ def expected_calibration_error(samples, true_labels, M=5):
             ece += np.abs(avg_confidence_in_bin - accuracy_in_bin) * prob_in_bin
     return ece
 
-expected_calibration_error(clf.predict_proba(X_test_to_use), y_test,10)
+def run_calibration_process(X_test, y_test):
+    pass
 
-from sklearn.calibration import calibration_curve, CalibrationDisplay
+calibration_error = cal.get_calibration_error(clf.predict_proba(X_test_to_use), y_test)
 
 prob_pos = clf.predict_proba(X_test_to_use)[:, 1]
 true = y_test
 CalibrationDisplay.from_predictions(true, prob_pos, n_bins=10)
 
-from sklearn.metrics import brier_score_loss
-brier = brier_score_loss(y_test, prob_pos)
+
+brier = m.brier_score_loss(y_test, prob_pos)
 print(brier)
 
-from sklearn.calibration import CalibratedClassifierCV
+
 
 calibrated_model = CalibratedClassifierCV(clf, method='isotonic', cv=5)
 calibrated_model.fit(X_train_to_use, y_train)
@@ -55,7 +56,7 @@ prob_pos = calibrated_model.predict_proba(X_test_to_use)[:, 1]
 true = y_test
 CalibrationDisplay.from_predictions(true, prob_pos, n_bins=10)
 
-from sklearn import metrics as m
+
 
 y_pred_calibrated = calibrated_model.predict(X_test_to_use)
 print(m.confusion_matrix(y_test,y_pred_calibrated))
