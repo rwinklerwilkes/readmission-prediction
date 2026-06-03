@@ -1,7 +1,7 @@
 #This library comes from https://github.com/p-lambda/verified_calibration
 #The library is based on a paper from the same author https://arxiv.org/pdf/1909.10155
 import calibration as cal
-import utils as u
+import production.utils as u
 from sklearn.calibration import calibration_curve, CalibrationDisplay, CalibratedClassifierCV
 from sklearn import metrics as m
 from joblib import dump, load
