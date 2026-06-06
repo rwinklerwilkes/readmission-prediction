@@ -14,7 +14,8 @@ def validation_schema():
         'admission_type_id': pa.Column(int, [pa.Check.greater_than(0), pa.Check.le(8)]), #Defined in data/IDS_mapping.csv
         'discharge_disposition_id': pa.Column(int, [pa.Check.greater_than(0), pa.Check.le(29)]), #Defined in data/IDS_mapping.csv
         'admission_source_id': pa.Column(int, [pa.Check.greater_than(0), pa.Check.le(26)]), #Defined in data/IDS_mapping.csv
-        'time_in_hospital': pa.Column(int, pa.Check.greater_than(0))
+        'time_in_hospital': pa.Column(int, pa.Check.greater_than(0)),
+        'readmitted': pa.Column(str, pa.Check(lambda s: s.isin(["<30", ">30", "NO"])))
     }
     )
     return schema

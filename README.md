@@ -6,6 +6,9 @@ To run Jupyter within uv:
 To run FastAPI within uv:
 `uv run fastapi dev`
 
+To run unit tests:
+`uv run pytest`
+
 There are two other directories that are needed to get this running:
 * data: This contains the following datasets:
 > * diabetic_data.csv, downloaded from https://archive.ics.uci.edu/dataset/296/diabetes+130-us+hospitals+for+years+1999-2008
