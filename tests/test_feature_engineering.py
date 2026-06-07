@@ -6,13 +6,13 @@ from production import feature_engineering as fe
 
 @pytest.fixture
 def my_dataframe():
-    input_data = [[1,'abc','NO'],
-                  [2,'def','NO'],
-                  [3,'abc','NO'],
-                  [4,'def','NO'],
-                  [5,'abc','<30'],
-                  [6,'abc','>30']]
-    df = pd.DataFrame(input_data,columns=['encounter_id','class','readmitted'])
+    input_data = [[1,'abc','NO','?'],
+                  [2,'def','NO','?'],
+                  [3,'abc','NO','[0-10)'],
+                  [4,'def','NO','[10-20)'],
+                  [5,'abc','<30','[50-100)'],
+                  [6,'abc','>30','[150-200)']]
+    df = pd.DataFrame(input_data,columns=['encounter_id','class','readmitted','weight'])
     return df
 
 @pytest.fixture
@@ -64,3 +64,12 @@ def test_parse_weight():
     assert fe.parse_weight('>200') == 200
     assert fe.parse_weight('(0-100]') == 50
     assert fe.parse_weight('(0-10]') == 5
+
+def test_parse_weight_to_number(my_dataframe):
+    df_parsed = fe.parse_weight_to_number(my_dataframe)
+    count_by_flag = df_parsed.groupby('has_weight').count()['encounter_id'].reset_index()
+    assert count_by_flag.loc[count_by_flag['has_weight']=='Y','encounter_id'].values[0] == 4
+    assert count_by_flag.loc[count_by_flag['has_weight']=='N','encounter_id'].values[0] == 2
+    expected_vals = [np.nan, np.nan, 5, 15, 75, 175]
+    expected_masked = np.ma.masked_where(np.isnan(expected_vals), expected_vals)
+    assert np.all(expected_masked == df_parsed.loc[:,'weight_parsed'].values)
