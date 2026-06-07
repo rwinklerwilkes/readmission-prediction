@@ -75,7 +75,7 @@ def stash_data(df, diag):
 
 def calculate_readmitted_rate(df, grouping=None):
     if grouping:
-        rate = df.groupby(grouping).agg({'patient_nbr':'count', 'readmitted_dummy':'sum'})
+        rate = df.groupby(grouping).agg({'patient_nbr':'count', 'readmitted_dummy':'sum'}).reset_index()
         rate['readmitted_rate'] = rate['readmitted_dummy']/rate['patient_nbr']
     else:
         rate = df['readmitted_dummy'].sum()/df['patient_nbr'].count()
