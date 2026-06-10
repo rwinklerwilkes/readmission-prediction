@@ -10,6 +10,9 @@ from joblib import dump
 
 def expected_calibration_error(samples, true_labels, M=5):
     # uniform binning approach with M number of bins
+    if true_labels.shape[0] != samples.shape[0]:
+        true_labels = true_labels.reshape(-1, 1)
+        assert true_labels.shape[0] == samples.shape[0]
     bin_boundaries = np.linspace(0, 1, M + 1)
     bin_lowers = bin_boundaries[:-1]
     bin_uppers = bin_boundaries[1:]
@@ -18,9 +21,12 @@ def expected_calibration_error(samples, true_labels, M=5):
     confidences = np.max(samples, axis=1)
     # get predictions from confidences (positional in this case)
     predicted_label = np.argmax(samples, axis=1)
+    predicted_label = predicted_label.reshape(-1, 1)
 
     # get a boolean list of correct/false predictions
     accuracies = predicted_label == true_labels
+    if accuracies.shape[0] != true_labels.shape[0]:
+        accuracies = accuracies.reshape(-1, 1)
 
     ece = np.zeros(1)
     for bin_lower, bin_upper in zip(bin_lowers, bin_uppers):
