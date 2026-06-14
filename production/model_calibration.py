@@ -2,7 +2,7 @@
 # The library is based on a paper from the same author https://arxiv.org/pdf/1909.10155
 import calibration as cal
 import numpy as np
-import production.utils as u
+from . import utils as u
 from sklearn.calibration import CalibrationDisplay, CalibratedClassifierCV
 from sklearn import metrics as m
 from joblib import dump
